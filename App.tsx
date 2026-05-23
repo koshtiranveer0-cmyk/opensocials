@@ -27,8 +27,8 @@ const CONFIGURE_FEATURE_ROW_HEIGHT = 52;
 const CONFIGURE_FEATURE_VISIBLE_ROWS = 6;
 const CONFIGURE_FEATURES_SCROLL_HEIGHT =
   CONFIGURE_FEATURE_ROW_HEIGHT * CONFIGURE_FEATURE_VISIBLE_ROWS;
-/** Padding + title + chips + feature list + Done (see configureModal + children). */
-const CONFIGURE_MODAL_FIXED_HEIGHT = 524;
+/** Padding + title + instruction + dropdown + feature list + Done (see configureModal + children). */
+const CONFIGURE_MODAL_FIXED_HEIGHT = 552;
 
 const joinConfigUrl = (base: string, path: string) => {
   const b = base.endsWith('/') ? base.slice(0, -1) : base;
@@ -196,8 +196,14 @@ const APP_GRID = [
     icon: require('./assets/youtube.png'),
     active: true,
   },
+  {
+    name: 'Reddit',
+    id: 'reddit',
+    icon: require('./assets/app.png'),
+    active: false,
+  },
 ];
-const GRID_ROWS = 1;
+const GRID_ROWS = 2;
 const GRID_COLS = 3;
 
 const firstConfigurableAppId = () =>
@@ -234,6 +240,7 @@ const App = () => {
   const [configureModalVisible, setConfigureModalVisible] = useState(false);
   const [configureContextAppId, setConfigureContextAppId] = useState(firstConfigurableAppId);
   const [configureUnblocks, setConfigureUnblocks] = useState<Record<string, boolean>>({});
+  const [configureAppPickerOpen, setConfigureAppPickerOpen] = useState(false);
 
   const redirectToUrl = useCallback((url: string) => {
     if (!webViewRef.current) {return;}
@@ -422,9 +429,9 @@ const App = () => {
   };
 
   const saveInfoVisible = async (visible: boolean) => {
+    setInfoVisible(visible);
     try {
       await AsyncStorage.setItem('infoVisible', visible ? 'true' : 'false');
-      setInfoVisible(visible);
     } catch (error) {
       console.error('Failed to save infoVisible state:', error);
     }
@@ -526,9 +533,15 @@ const App = () => {
     setConfigureUnblocks(u);
   };
 
+  const closeConfigureModal = () => {
+    setConfigureAppPickerOpen(false);
+    setConfigureModalVisible(false);
+  };
+
   const openConfigureModal = (initialAppId?: string) => {
     const id = initialAppId && CONFIG[initialAppId] ? initialAppId : firstConfigurableAppId();
     setConfigureContextAppId(id);
+    setConfigureAppPickerOpen(false);
     loadConfigureUnblocksFor(id).catch(() => {});
     setConfigureModalVisible(true);
   };
@@ -648,7 +661,7 @@ const App = () => {
         {Platform.OS === 'ios' ? (
           <Text style={styles.notificationsText}>
             1. Make sure to keep the official mobile app (e.g., Instagram) installed on your device with push notifications
-            enabled for actions that you care about (e.g., new messages or replies).{'\n\n'}
+            enabled for actions that you care about, like new chat messages.{'\n\n'}
             2. Open the built-in{' '}
             <Hyperlink url="https://apps.apple.com/us/app/shortcuts/id915249334">Shortcuts</Hyperlink> iOS app on your
             device and navigate to the <Text style={styles.boldEmphasis}>"Automation"</Text> section.{'\n\n'}
@@ -664,7 +677,7 @@ const App = () => {
         ) : (
           <Text style={styles.notificationsText}>
             1. Make sure to keep the official mobile app (e.g., Instagram) installed on your device with push notifications
-            enabled for new messages or replies.{'\n\n'}
+            enabled for actions that you care about, like new chat messages.{'\n\n'}
             2. On a Samsung device, open the built-in{' '}
             <Hyperlink url="https://galaxystore.samsung.com/prepost/000006561093">Modes and Routines</Hyperlink> app (or
             use a third-party automation app such as{' '}
@@ -719,15 +732,6 @@ const App = () => {
                   style={styles.dropdownItem}
                   onPress={() => {
                     setDropdownVisible(false);
-                    openConfigureModal();
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>Configure</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setDropdownVisible(false);
                     setShowNotificationsInstructions(true);
                   }}
                 >
@@ -770,15 +774,6 @@ const App = () => {
                 >
                   <Text style={styles.dropdownItemText}>Configure</Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.dropdownItem}
-                  onPress={() => {
-                    setAppIconMenu(null);
-                    setShowNotificationsInstructions(true);
-                  }}
-                >
-                  <Text style={styles.dropdownItemText}>Notifications</Text>
-                </TouchableOpacity>
               </View>
             )}
           </View>
@@ -788,29 +783,57 @@ const App = () => {
           visible={configureModalVisible}
           transparent
           animationType="fade"
-          onRequestClose={() => setConfigureModalVisible(false)}
+          onRequestClose={closeConfigureModal}
         >
           <View style={styles.infoModalOverlay}>
             <View style={[styles.infoModal, styles.configureModal]}>
               <Text style={styles.infoTitle}>Configure</Text>
-              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.appChipsScroll}>
-                {configureAppIds.map((id) => {
-                  const label = APP_GRID.find((a) => a.id === id)?.name ?? id;
-                  const selected = id === configureContextAppId;
-                  return (
-                    <TouchableOpacity
-                      key={id}
-                      style={[styles.appChip, selected && styles.appChipSelected]}
-                      onPress={() => {
-                        setConfigureContextAppId(id);
-                        loadConfigureUnblocksFor(id).catch(() => {});
-                      }}
-                    >
-                      <Text style={[styles.appChipText, selected && styles.appChipTextSelected]}>{label}</Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
+              <Text style={styles.configureInstruction}>
+                Toggle the app features you want to unblock
+              </Text>
+              <View style={styles.configureAppPickerWrap}>
+                <Pressable
+                  style={styles.configureAppPicker}
+                  onPress={() => setConfigureAppPickerOpen((v) => !v)}
+                  accessibilityLabel="Select app to configure"
+                >
+                  <Text style={styles.configureAppPickerLabel}>
+                    {APP_GRID.find((a) => a.id === configureContextAppId)?.name ?? configureContextAppId}
+                  </Text>
+                  <Text style={styles.configureAppPickerChevron}>{configureAppPickerOpen ? '▲' : '▼'}</Text>
+                </Pressable>
+                {configureAppPickerOpen && (
+                  <View style={styles.configureAppPickerList}>
+                    {configureAppIds.map((id) => {
+                      const label = APP_GRID.find((a) => a.id === id)?.name ?? id;
+                      const selected = id === configureContextAppId;
+                      return (
+                        <TouchableOpacity
+                          key={id}
+                          style={[
+                            styles.configureAppPickerOption,
+                            selected && styles.configureAppPickerOptionSelected,
+                          ]}
+                          onPress={() => {
+                            setConfigureContextAppId(id);
+                            loadConfigureUnblocksFor(id).catch(() => {});
+                            setConfigureAppPickerOpen(false);
+                          }}
+                        >
+                          <Text
+                            style={[
+                              styles.configureAppPickerOptionText,
+                              selected && styles.configureAppPickerOptionTextSelected,
+                            ]}
+                          >
+                            {label}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
               <ScrollView
                 style={styles.configureFeaturesScroll}
                 contentContainerStyle={styles.configureFeaturesContent}
@@ -845,7 +868,7 @@ const App = () => {
               </ScrollView>
               <Pressable
                 style={styles.infoCloseButton}
-                onPress={() => setConfigureModalVisible(false)}
+                onPress={closeConfigureModal}
                 accessibilityLabel="Close configure"
               >
                 <Text style={styles.infoCloseButtonText}>Save</Text>
@@ -860,13 +883,15 @@ const App = () => {
               <Text style={styles.infoTitle}>Welcome!</Text>
               <Text style={styles.infoText}>
                 Welcome to OpenSocials, the open web app browser that puts you back in control of your social media
-                usage, keeping you connected without all the distractions and time-wasting scolling.{'\n\n'}
-                Tap a social web app to sign in. You can return to this home page at any time by signing out again. For
-                advanced features like app configuration and notifications, tap the ⋮ icon in the top right corner.
+                usage, keeping you connected without all the distractions and time-wasting scrolling.{'\n\n'}
+                Tap a social web app to log in. You can return to this home page at any time by logging out again.
               </Text>
               <Pressable
                 style={styles.infoCloseButton}
-                onPress={() => saveInfoVisible(false)}
+                onPress={() => {
+                    saveInfoVisible(false);
+                    setShowNotificationsInstructions(true);
+                }}
                 accessibilityLabel="Close info popup"
               >
                 <Text style={styles.infoCloseButtonText}>Continue</Text>
@@ -1130,31 +1155,69 @@ const styles = StyleSheet.create({
   dropdownItemTextOpen: {
     fontWeight: '700',
   },
-  appChipsScroll: {
-    maxHeight: 44,
+  configureInstruction: {
+    color: '#ccc',
+    fontSize: 15,
+    textAlign: 'left',
     marginBottom: 12,
     alignSelf: 'stretch',
   },
-  appChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 20,
+  configureAppPickerWrap: {
+    alignSelf: 'stretch',
+    marginBottom: 12,
+    zIndex: 10,
+    position: 'relative',
+  },
+  configureAppPicker: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     backgroundColor: '#333',
-    marginRight: 8,
-    justifyContent: 'center',
-  },
-  appChipSelected: {
-    backgroundColor: '#555',
+    borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#888',
+    borderColor: '#555',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
   },
-  appChipText: {
+  configureAppPickerLabel: {
+    color: '#eee',
+    fontSize: 15,
+  },
+  configureAppPickerChevron: {
     color: '#aaa',
-    fontSize: 14,
-    fontWeight: '500',
+    fontSize: 10,
+    marginLeft: 8,
   },
-  appChipTextSelected: {
-    color: '#fff',
+  configureAppPickerList: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    backgroundColor: '#232323',
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#444',
+    overflow: 'hidden',
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  configureAppPickerOption: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+  },
+  configureAppPickerOptionSelected: {
+    backgroundColor: '#333',
+  },
+  configureAppPickerOptionText: {
+    color: '#aaa',
+    fontSize: 15,
+  },
+  configureAppPickerOptionTextSelected: {
+    color: '#eee',
   },
   configureFeaturesScroll: {
     alignSelf: 'stretch',
@@ -1166,7 +1229,6 @@ const styles = StyleSheet.create({
   configureFeaturesContent: {
     paddingBottom: 8,
     paddingHorizontal: 6,
-    paddingRight: 18,
   },
   featureRowFixed: {
     flexDirection: 'row',
