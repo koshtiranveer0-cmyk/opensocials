@@ -28,7 +28,7 @@ const CONFIGURE_FEATURE_VISIBLE_ROWS = 6;
 const CONFIGURE_FEATURES_SCROLL_HEIGHT =
   CONFIGURE_FEATURE_ROW_HEIGHT * CONFIGURE_FEATURE_VISIBLE_ROWS;
 /** Padding + title + instruction + dropdown + feature list + Done (see configureModal + children). */
-const CONFIGURE_MODAL_FIXED_HEIGHT = 552;
+const CONFIGURE_MODAL_FIXED_HEIGHT = 520;
 
 const joinConfigUrl = (base: string, path: string) => {
   const b = base.endsWith('/') ? base.slice(0, -1) : base;
@@ -468,7 +468,20 @@ const App = () => {
     }
   };
 
+  const cancelLoginAndReturnHome = useCallback(() => {
+    setLoggingIn(false);
+    setLoggedIn(false);
+    setCanGoBack(false);
+    setCurrentUrl('');
+    setWentBack(false);
+    setHasLoadError(false);
+  }, []);
+
   const handleBackPress = useCallback(() => {
+    if (loggingIn) {
+      cancelLoginAndReturnHome();
+      return true;
+    }
     if (!webViewRef.current) {
       return false;
     }
@@ -479,7 +492,7 @@ const App = () => {
       BackHandler.exitApp();
     }
     return true;
-  }, [canGoBack]);
+  }, [loggingIn, cancelLoginAndReturnHome, canGoBack]);
 
   const handleLoadError = () => {
     setHasLoadError(true);
@@ -597,6 +610,15 @@ const App = () => {
       backgroundColor: appBackgroundColor,
     }),
     [appBackgroundColor],
+  );
+
+  const loginHeaderColors = useMemo(
+    () => ({
+      backgroundColor: colorScheme === 'dark' ? '#181818' : '#f5f5f5',
+      textColor: colorScheme === 'dark' ? '#eee' : '#111',
+      borderColor: colorScheme === 'dark' ? '#222' : '#ddd',
+    }),
+    [colorScheme],
   );
 
   const appIconDropdownOffset = useMemo(() => {
@@ -917,6 +939,26 @@ const App = () => {
 
   return (
     <View style={webShellStyle}>
+      {loggingIn && (
+        <View
+          style={[
+            styles.loginHeader,
+            {
+              backgroundColor: loginHeaderColors.backgroundColor,
+              borderBottomColor: loginHeaderColors.borderColor,
+            },
+          ]}
+        >
+          <Pressable
+            onPress={cancelLoginAndReturnHome}
+            style={styles.loginBackButton}
+            accessibilityLabel="Back to home"
+          >
+            <Text style={[styles.loginBackChevron, { color: loginHeaderColors.textColor }]}>‹</Text>
+            <Text style={[styles.loginBackLabel, { color: loginHeaderColors.textColor }]}>Back</Text>
+          </Pressable>
+        </View>
+      )}
       <WebView
         style={webViewFillStyle}
         ref={webViewRef}
@@ -946,7 +988,7 @@ const App = () => {
         }}
         onContentProcessDidTerminate={handleProcessTermination}
         onRenderProcessGone={handleProcessTermination}
-        allowsBackForwardNavigationGestures={true}
+        allowsBackForwardNavigationGestures={!loggingIn}
         pullToRefreshEnabled={true}
         mediaPlaybackRequiresUserAction={true}
         allowsInlineMediaPlayback={true}
@@ -978,6 +1020,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     borderBottomColor: '#222',
     borderBottomWidth: 1,
+  },
+  loginHeader: {
+    height: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    paddingHorizontal: 8,
+  },
+  loginBackButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 8,
+  },
+  loginBackChevron: {
+    fontSize: 28,
+    lineHeight: 28,
+    marginRight: 2,
+    marginTop: -2,
+  },
+  loginBackLabel: {
+    fontSize: 17,
   },
   titleText: {
     color: 'white',
