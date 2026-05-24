@@ -689,7 +689,7 @@ const App = () => {
             device and navigate to the <Text style={styles.boldEmphasis}>"Automation"</Text> section.{'\n\n'}
             3. Tap the + button to create a new <Text style={styles.boldEmphasis}>"Personal Automation"</Text>.
             {'\n\n'}
-            4. Select <Text style={styles.boldEmphasis}>"App"</Text> as the trigger, then choose the official app (e.g.
+            4. Select <Text style={styles.boldEmphasis}>"App"</Text> as the trigger, then choose the official app (e.g.,
             Instagram) and set it to trigger when the app <Text style={styles.boldEmphasis}>"Is Opened"</Text>.
             {'\n\n'}
             5. Add an <Text style={styles.boldEmphasis}>"Open App"</Text> action and select the{' '}
@@ -708,7 +708,7 @@ const App = () => {
             3. Navigate to the <Text style={styles.boldEmphasis}>"Routines"</Text> section and tap the + button to
             create a new routine.{'\n\n'}
             4. Select <Text style={styles.boldEmphasis}>"App opened"</Text> as the "If" condition and choose the official
-            app (e.g. Instagram).{'\n\n'}
+            app (e.g., Instagram).{'\n\n'}
             5. Select <Text style={styles.boldEmphasis}>"Apps &gt; Open an app or do an app action"</Text> as the
             "Then" action and select the <Text style={styles.boldEmphasis}>OpenSocials</Text> app.{'\n\n'}
             6. Save the routine and ensure it is enabled.
@@ -811,7 +811,7 @@ const App = () => {
             <View style={[styles.infoModal, styles.configureModal]}>
               <Text style={styles.infoTitle}>Configure</Text>
               <Text style={styles.configureInstruction}>
-                Toggle the app features you want to unblock
+                Toggle the features you want to unblock
               </Text>
               <View style={styles.configureAppPickerWrap}>
                 <Pressable
@@ -1222,7 +1222,7 @@ const styles = StyleSheet.create({
   configureInstruction: {
     color: '#ccc',
     fontSize: 15,
-    textAlign: 'left',
+    textAlign: 'center',
     marginBottom: 12,
     alignSelf: 'stretch',
   },
