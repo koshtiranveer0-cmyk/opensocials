@@ -399,6 +399,128 @@ const CONFIG: AppConfigMap = {
     },
     configUrl: "https://raw.githubusercontent.com/liamperritt/social-minimalist-config/refs/heads/main/config/youtube/v2/",
   },
+  reddit: {
+    webAppId: "reddit",
+    baseUrlShort: "reddit.com",
+    baseUrl: "https://www.reddit.com",
+    sourceUrl: "https://www.reddit.com/chat/",
+    signInUrl: "https://www.reddit.com/login/",
+    openableExternalUrls: [
+      "https://accounts.google.com/",
+      "https://appleid.apple.com/",
+      "https://www.google.com/recaptcha/",
+    ],
+    webAppSessionCookies: ["reddit_session"],
+    canUnblockFeatures: {
+      "inbox": true,
+      "feed": false,
+      "news": false,
+      "games": false,
+      "explore": false,
+      "popular": false,
+      "distractions": false,
+    },
+    defaultRedirects: {
+      "distractions": [],
+      "feed": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com",
+          "toUrl": "https://www.reddit.com/settings/",
+          "ifPreviousUrl": "https://www.reddit.com/chat/",
+          "exactMatch": true,
+        },
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/",
+          "toUrl": "https://www.reddit.com/settings/",
+          "ifPreviousUrl": "https://www.reddit.com/chat/",
+          "exactMatch": true,
+        },
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com",
+          "toUrl": "https://www.reddit.com/chat/",
+          "ifNotPreviousUrl": "https://www.reddit.com/chat/",
+          "exactMatch": true,
+        },
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/",
+          "toUrl": "https://www.reddit.com/chat/",
+          "ifNotPreviousUrl": "https://www.reddit.com/chat/",
+          "exactMatch": true,
+        },
+      ],
+      "news": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/news/",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+      ],
+      "games": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/r/GamesOnReddit/",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/r/GamesOnReddit/",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+      ],
+      "explore": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/explore/",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+      ],
+      "popular": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/r/popular/",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+      ],
+      "inbox": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.reddit.com/notifications",
+          "toUrl": "https://www.reddit.com/chat/",
+        },
+      ],
+    },
+    defaultFilters: {
+      "distractions": [
+        "div[role='dialog'][aria-label='Log In'] > div > slot[name='closeButton']",
+      ],
+      "feed": [
+        "faceplate-tracker[source='nav'][noun='home']",
+        "shreddit-feed[reload-url$='/feeds/home-feed']",
+        "shreddit-async-loader[bundlename='shreddit_sort_dropdown']",
+      ],
+      "news": [
+        "li[role='presentation'][id='news-posts']",
+      ],
+      "games": [
+        "faceplate-tracker[source='nav'][noun='games_drawer']",
+        "faceplate-loader[name='LeftNavGamesSection_DcK0YZ']",
+      ],
+      "explore": [
+        "faceplate-tracker[source='nav'][noun='explore']",
+      ],
+      "popular": [
+        "faceplate-tracker[source='nav'][noun='popular']",
+      ],
+      "inbox": [
+        "faceplate-tracker[source='nav'][noun='inbox']",
+      ],
+    },
+    configUrl: "https://raw.githubusercontent.com/liamperritt/social-minimalist-config/refs/heads/main/config/reddit/v2/",
+  },
 };
 
 export default CONFIG;

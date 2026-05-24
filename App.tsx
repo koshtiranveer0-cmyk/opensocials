@@ -199,7 +199,7 @@ const APP_GRID = [
   {
     name: 'Reddit',
     id: 'reddit',
-    icon: require('./assets/app.png'),
+    icon: require('./assets/reddit.png'),
     active: false,
   },
 ];
