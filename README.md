@@ -2,7 +2,7 @@
 
 **OpenSocials** is an open web app browser that aims to put users back in control of their social media usage, helping people stay connected without all the distractions and time-wasting scrolling. Use OpenSocials to access the useful features your social media apps (including Instagram, Facebook and YouTube) while blocking any distracting or addictive features (such as the Feed, Reels or Shorts). Configure which features you want to block and which features you want to remain accessible.
 
-**OpenSocials' most popular use case is its ability to block all Instagram features except DMs**, allowing you to message your Instagram followers while avoiding the Feed, Reels, Explore page and other distracting features.
+**OpenSocials' most popular use case is its ability to block all Instagram features except DMs**, allowing you to message your Instagram followers while avoiding the Feed, Reels, Explore page and other addictive or distracting features.
 
 # Installation
 
