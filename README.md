@@ -1,8 +1,20 @@
+# OpenSocials
+
 OpenSocials is an open web app browser that aims to put users back in control of their social media usage, helping people stay connected without all the distractions and time-wasting scrolling.
 
-This is a new [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
+Use OpenSocials to access the useful features your social media apps (including Instagram, Facebook and YouTube) while blocking any distracting or addictive features (such as the Feed, Reels or Shorts). Configure which features you want to block and which features you want to remain accessible.
 
-# Getting Started
+OpenSocials' most popular use case is its ability to block all Instagram features except DMs, allowing you to message your friends on Instagram while avoiding the Feed, Reels, Stories and other distractions.
+
+# Installation
+
+For Android users, download and install the latest `app-release.apk` from GitHub: **https://github.com/liamperritt/opensocials/releases**.
+
+For iOS users, join the open Beta and install via TestFlight: **https://testflight.apple.com/join/mqGMYrer**.
+
+# Building the Project
+
+This is a [**React Native**](https://reactnative.dev) project, bootstrapped using [`@react-native-community/cli`](https://github.com/react-native-community/cli).
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
@@ -84,11 +96,11 @@ You've successfully run and modified your React Native App. :partying_face:
 - If you want to add this new React Native code to an existing application, check out the [Integration guide](https://reactnative.dev/docs/integration-with-existing-apps).
 - If you're curious to learn more about React Native, check out the [docs](https://reactnative.dev/docs/getting-started).
 
-# Troubleshooting
+## Troubleshooting
 
 If you're having issues getting the above steps to work, see the [Troubleshooting](https://reactnative.dev/docs/troubleshooting) page.
 
-# Learn More
+## Learn More
 
 To learn more about React Native, take a look at the following resources:
 
