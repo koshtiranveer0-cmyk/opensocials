@@ -33,5 +33,23 @@ target 'InstaDMApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # fmt 11.0.2 (pinned by RCT-Folly) only disables consteval for Apple clang < 14, but the
+    # Xcode 26.x clang rejects its FMT_STRING call sites. base.h has no #ifndef guard around
+    # FMT_USE_CONSTEVAL, so -DFMT_USE_CONSTEVAL=0 is overwritten and the header must be patched.
+    # Remove once React Native ships fmt >= 12.1.0.
+    fmt_base = File.join(installer.sandbox.pod_dir('fmt'), 'include', 'fmt', 'base.h')
+    if File.exist?(fmt_base)
+      content = File.read(fmt_base)
+      patched = content.sub(
+        '#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L',
+        '#elif defined(__apple_build_version__)'
+      )
+      if patched != content
+        File.chmod(0644, fmt_base)
+        File.write(fmt_base, patched)
+        Pod::UI.puts 'Patched fmt/base.h to disable consteval on Apple clang'.green
+      end
+    end
   end
 end

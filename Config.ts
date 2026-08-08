@@ -37,12 +37,12 @@ const CONFIG: AppConfigMap = {
     webAppSessionCookies: ["ds_user_id", "sessionid"],
     canUnblockFeatures: {
       "notes": true,
+      "stories": true,
       "replies": true,
       "favorites": true,
       "feed": false,
       "reels": false,
       "explore": false,
-      "stories": false,
       "distractions": false,
     },
     defaultRedirects: {
@@ -164,8 +164,14 @@ const CONFIG: AppConfigMap = {
           "exactMatch": true,
         },
       ],
+      "stories": [
+        {
+          "when": "blocked",
+          "fromUrl": "https://www.instagram.com/stories/",
+          "toUrl": "https://www.instagram.com/direct/inbox/",
+        },
+      ],
       "replies": [],
-      "stories": [],
       "notes": [],
     },
     defaultFilters: {
@@ -197,6 +203,9 @@ const CONFIG: AppConfigMap = {
       ],
       "stories": [
         ".xvbhtw8.x1njnj16", // Stories panel
+        "canvas.x87ps6o.xpdipgo.x1upo8f9", // Stories outline in Profile
+        ".x9lcvmn.x11xpdln.x1g2r6go.x1n2onr6 > canvas", // Stories outline in DMs
+        "body > button", // Stories button in DMs
       ],
       "replies": [
         ".x11hdunq.x1nhvcw1.x1oa3qoh.x1qjc9v5.xqjyukv.xdt5ytf.x2lah0s.x1c4vz4f.xryxfnj.x1plvlek.x1uhb9sk.xbiv7yw.x16uus16.x1ga7v0g.x15mokao.x78zum5.xjbqb8w.x9f619.x1c1uobl.x18d9i69.xyri2b.xexx8yu.xat24cr.x14z9mp.xdj266r.html-div", // Comment replies
