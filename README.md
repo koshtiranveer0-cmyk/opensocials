@@ -1,16 +1,14 @@
 # OpenSocials
 
-OpenSocials is an open web app browser that aims to put users back in control of their social media usage, helping people stay connected without all the distractions and time-wasting scrolling.
+**OpenSocials** is an open web app browser that aims to put users back in control of their social media usage, helping people stay connected without all the distractions and time-wasting scrolling. Use OpenSocials to access the useful features your social media apps (including Instagram, Facebook and YouTube) while blocking any distracting or addictive features (such as the Feed, Reels or Shorts). Configure which features you want to block and which features you want to remain accessible.
 
-Use OpenSocials to access the useful features your social media apps (including Instagram, Facebook and YouTube) while blocking any distracting or addictive features (such as the Feed, Reels or Shorts). Configure which features you want to block and which features you want to remain accessible.
-
-OpenSocials' most popular use case is its ability to block all Instagram features except DMs, allowing you to message your friends on Instagram while avoiding the Feed, Reels, Stories and other distractions.
+**OpenSocials' most popular use case is its ability to block all Instagram features except DMs**, allowing you to message your Instagram followers while avoiding the Feed, Reels, Explore page and other distracting features.
 
 # Installation
 
-For Android users, download and install the latest `app-release.apk` from GitHub: **https://github.com/liamperritt/opensocials/releases**.
+For **Android users**, download and install the latest `app-release.apk` from GitHub: **https://github.com/liamperritt/opensocials/releases**.
 
-For iOS users, join the open Beta and install via TestFlight: **https://testflight.apple.com/join/mqGMYrer**.
+For **iOS users**, join the open Beta and install via TestFlight: **https://testflight.apple.com/join/mqGMYrer**.
 
 # Building the Project
 
@@ -32,9 +30,9 @@ npm start
 yarn start
 ```
 
-## Step 2: Build and run your app
+## Step 2: Build and run the app
 
-With Metro running, open a new terminal window/pane from the root of your React Native project, and use one of the following commands to build and run your Android or iOS app:
+With Metro running, open a new terminal window/pane from the root of the React Native project, and use one of the following commands to build and run the Android or iOS app:
 
 ### Android
 
@@ -50,7 +48,7 @@ yarn android
 
 For iOS, remember to install CocoaPods dependencies (this only needs to be run on first clone or after updating native deps).
 
-The first time you create a new project, run the Ruby bundler to install CocoaPods itself:
+The first time you build the project, run the Ruby bundler to install CocoaPods itself:
 
 ```sh
 bundle install
@@ -72,24 +70,24 @@ npm run ios
 yarn ios
 ```
 
-If everything is set up correctly, you should see your new app running in the Android Emulator, iOS Simulator, or your connected device.
+If everything is set up correctly, you should see the app running in the Android Emulator, iOS Simulator, or your connected device.
 
-This is one way to run your app — you can also build it directly from Android Studio or Xcode.
+This is one way to run the app — you can also build it directly from Android Studio or Xcode.
 
 ## Step 3: Modify your app
 
 Now that you have successfully run the app, let's make changes!
 
-Open `App.tsx` in your text editor of choice and make some changes. When you save, your app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
+Open `App.tsx` in your text editor of choice and make some changes. When you save, the app will automatically update and reflect these changes — this is powered by [Fast Refresh](https://reactnative.dev/docs/fast-refresh).
 
-When you want to forcefully reload, for example to reset the state of your app, you can perform a full reload:
+When you want to forcefully reload, for example to reset the state of the app, you can perform a full reload:
 
 - **Android**: Press the <kbd>R</kbd> key twice or select **"Reload"** from the **Dev Menu**, accessed via <kbd>Ctrl</kbd> + <kbd>M</kbd> (Windows/Linux) or <kbd>Cmd ⌘</kbd> + <kbd>M</kbd> (macOS).
 - **iOS**: Press <kbd>R</kbd> in iOS Simulator.
 
 ## Congratulations! :tada:
 
-You've successfully run and modified your React Native App. :partying_face:
+You've successfully run and modified the React Native App. :partying_face:
 
 ### Now what?
 
