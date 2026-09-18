@@ -41,12 +41,12 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSCameraUsageDescription</key>
+	<string>We need access to your camera to let you take photos and scan barcodes.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
-	<key>NSCameraUsageDescription</key>
-    <string>We need access to your camera to let you take photos and scan barcodes.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-    <string>We need access to save captured photos to your library.</string>
+	<string>We need access to save captured photos to your library.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

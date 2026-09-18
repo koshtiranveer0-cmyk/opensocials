@@ -144,6 +144,29 @@ function urlMatchesRule(navUrl: string, rule: RedirectRule): boolean {
   return navUrl.startsWith(rule.fromUrl);
 }
 
+function normalizeUrlPath(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const path = parsed.pathname.replace(/\/+$/, '') || '/';
+    return `${parsed.origin}${path}`;
+  } catch {
+    return url.split('#')[0].replace(/\/+$/, '');
+  }
+}
+
+function urlMatchesReturnHome(navUrl: string, returnHomeUrls: string[]): boolean {
+  if (!navUrl) {return false;}
+  const normalizedNav = normalizeUrlPath(navUrl);
+  return returnHomeUrls.some((homeUrl) => normalizeUrlPath(homeUrl) === normalizedNav);
+}
+
+async function hasAppSessionCookies(appConfig: AppConfigEntry): Promise<boolean> {
+  const cookies = await CookieManager.get(appConfig.baseUrl, true);
+  return appConfig.webAppSessionCookies.every(
+    (cookieName) => cookies[cookieName] && cookies[cookieName].value
+  );
+}
+
 function previousUrlMatches(rule: RedirectRule, prevUrl: string): boolean {
   if (rule.ifPreviousUrl !== undefined && prevUrl !== rule.ifPreviousUrl) {
     return false;
@@ -398,10 +421,7 @@ const App = () => {
       ];
       for (const id of appIds) {
         const appConfig = CONFIG[id];
-        const cookies = await CookieManager.get(appConfig.baseUrl, true);
-        const isLoggedIn = appConfig.webAppSessionCookies.every(
-          (cookieName) => cookies[cookieName] && cookies[cookieName].value
-        );
+        const isLoggedIn = await hasAppSessionCookies(appConfig);
         if (isLoggedIn) {
           setLoggingIn(false);
           setLoggedIn(true);
@@ -477,8 +497,10 @@ const App = () => {
     setHasLoadError(false);
   }, []);
 
+  const showHomeBar = loggingIn || urlMatchesReturnHome(currentUrl, config.returnHomeUrls ?? []);
+
   const handleBackPress = useCallback(() => {
-    if (loggingIn) {
+    if (showHomeBar) {
       cancelLoginAndReturnHome();
       return true;
     }
@@ -492,7 +514,7 @@ const App = () => {
       BackHandler.exitApp();
     }
     return true;
-  }, [loggingIn, cancelLoginAndReturnHome, canGoBack]);
+  }, [showHomeBar, cancelLoginAndReturnHome, canGoBack]);
 
   const handleLoadError = () => {
     setHasLoadError(true);
@@ -775,13 +797,17 @@ const App = () => {
                   onPress={() => {
                     const id = appIconMenu.appId;
                     setAppIconMenu(null);
-                    updateConfig(id)
-                      .then(() => {
-                        setLoggingIn(true);
-                      })
-                      .catch(() => {
-                        setLoggingIn(true);
-                      });
+                    (async () => {
+                      const appConfig = CONFIG[id];
+                      const hasSession = await hasAppSessionCookies(appConfig);
+                      if (!hasSession) {
+                        await CookieManager.clearAll(true);
+                      }
+                      await updateConfig(id);
+                      setLoggingIn(true);
+                    })().catch(() => {
+                      setLoggingIn(true);
+                    });
                   }}
                 >
                   <Text style={[styles.dropdownItemText, styles.dropdownItemTextOpen]}>Open</Text>
@@ -939,7 +965,7 @@ const App = () => {
 
   return (
     <View style={webShellStyle}>
-      {loggingIn && (
+      {showHomeBar && (
         <View
           style={[
             styles.loginHeader,
@@ -955,7 +981,7 @@ const App = () => {
             accessibilityLabel="Back to home"
           >
             <Text style={[styles.loginBackChevron, { color: loginHeaderColors.textColor }]}>‹</Text>
-            <Text style={[styles.loginBackLabel, { color: loginHeaderColors.textColor }]}>Back</Text>
+            <Text style={[styles.loginBackLabel, { color: loginHeaderColors.textColor }]}>Home</Text>
           </Pressable>
         </View>
       )}

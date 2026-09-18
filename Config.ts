@@ -14,6 +14,7 @@ export interface AppConfigEntry {
   baseUrl: string;
   sourceUrl: string;
   signInUrl?: string;
+  returnHomeUrls: string[];
   openableExternalUrls: string[];
   webAppSessionCookies: string[];
   canUnblockFeatures: {[key: string]: boolean};
@@ -30,6 +31,7 @@ const CONFIG: AppConfigMap = {
     baseUrlShort: "instagram.com",
     baseUrl: "https://www.instagram.com",
     sourceUrl: "https://www.instagram.com/direct/inbox/",
+    returnHomeUrls: ["https://www.instagram.com/accounts/settings/"],
     openableExternalUrls: [
       "https://www.facebook.com/instagram/",
       "https://www.fbsbx.com/",
@@ -227,6 +229,7 @@ const CONFIG: AppConfigMap = {
     baseUrlShort: "facebook.com",
     baseUrl: "https://m.facebook.com/",
     sourceUrl: "https://m.facebook.com/bookmarks/",
+    returnHomeUrls: ["https://m.facebook.com/bookmarks/"],
     openableExternalUrls: ["https://www.fbsbx.com/"],
     webAppSessionCookies: ["c_user", "xs"],
     canUnblockFeatures: {
@@ -338,6 +341,10 @@ const CONFIG: AppConfigMap = {
     baseUrl: "https://m.youtube.com/",
     sourceUrl: "https://m.youtube.com/feed/subscriptions/",
     signInUrl: "https://accounts.google.com/ServiceLogin?service=youtube&continue=https://m.youtube.com/",
+    returnHomeUrls: [
+      "https://m.youtube.com/select_site/",
+      "https://m.youtube.com/feed/library/",
+    ],
     openableExternalUrls: ["https://accounts.google.com/"],
     webAppSessionCookies: ["SID", "HSID"],
     canUnblockFeatures: {
@@ -414,6 +421,7 @@ const CONFIG: AppConfigMap = {
     baseUrl: "https://www.reddit.com",
     sourceUrl: "https://www.reddit.com/chat/",
     signInUrl: "https://www.reddit.com/login/",
+    returnHomeUrls: ["https://www.reddit.com/settings/"],
     openableExternalUrls: [
       "https://accounts.google.com/",
       "https://appleid.apple.com/",
