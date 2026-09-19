@@ -229,7 +229,10 @@ const CONFIG: AppConfigMap = {
     baseUrlShort: "facebook.com",
     baseUrl: "https://m.facebook.com/",
     sourceUrl: "https://m.facebook.com/bookmarks/",
-    returnHomeUrls: ["https://m.facebook.com/bookmarks/"],
+    returnHomeUrls: [
+      "https://m.facebook.com/settings/",
+      "https://m.facebook.com/bookmarks/",
+    ],
     openableExternalUrls: ["https://www.fbsbx.com/"],
     webAppSessionCookies: ["c_user", "xs"],
     canUnblockFeatures: {

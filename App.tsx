@@ -69,11 +69,14 @@ async function fetchResolvedRedirects(app: AppConfigEntry): Promise<{ [key: stri
 }
 
 async function fetchFiltersRaw(app: AppConfigEntry): Promise<unknown | null> {
+  console.log('Fetching filters config for app:', app.webAppId);
   try {
     const url = `${joinConfigUrl(app.configUrl, 'filters.json')}?cache_bust=true`;
     const res = await fetch(url);
     if (!res.ok) {throw new Error('bad status');}
-    return await res.json();
+    const data = await res.json();
+    console.log('Filters config fetched:', data);
+    return data;
   } catch {
     return null;
   }
@@ -147,10 +150,12 @@ function urlMatchesRule(navUrl: string, rule: RedirectRule): boolean {
 function normalizeUrlPath(url: string): string {
   try {
     const parsed = new URL(url);
+    parsed.search = '';
+    parsed.hash = '';
     const path = parsed.pathname.replace(/\/+$/, '') || '/';
     return `${parsed.origin}${path}`;
   } catch {
-    return url.split('#')[0].replace(/\/+$/, '');
+    return url.split('#')[0].split('?')[0].replace(/\/+$/, '');
   }
 }
 
@@ -167,11 +172,16 @@ async function hasAppSessionCookies(appConfig: AppConfigEntry): Promise<boolean>
   );
 }
 
+function urlsEqualNormalized(a: string, b: string): boolean {
+  if (!a || !b) {return false;}
+  return normalizeUrlPath(a) === normalizeUrlPath(b);
+}
+
 function previousUrlMatches(rule: RedirectRule, prevUrl: string): boolean {
-  if (rule.ifPreviousUrl !== undefined && prevUrl !== rule.ifPreviousUrl) {
+  if (rule.ifPreviousUrl !== undefined && !urlsEqualNormalized(prevUrl, rule.ifPreviousUrl)) {
     return false;
   }
-  if (rule.ifNotPreviousUrl !== undefined && prevUrl === rule.ifNotPreviousUrl) {
+  if (rule.ifNotPreviousUrl !== undefined && urlsEqualNormalized(prevUrl, rule.ifNotPreviousUrl)) {
     return false;
   }
   return true;
@@ -272,6 +282,7 @@ const App = () => {
   }, []);
 
   const constructInjectedJavaScript = useCallback((selectorsJson: string) => {
+    console.log('Constructing injected JavaScript with filters config:', selectorsJson);
     const newInjectedJavaScript = `
       hideElements = () => {
         const elementsToHide = ${selectorsJson};
@@ -324,6 +335,7 @@ const App = () => {
       }, 100);
       true;
     `;
+    console.log('Updating injected JavaScript:', newInjectedJavaScript);
     setInjectedJavaScript(newInjectedJavaScript);
     if (webViewRef.current) {
       webViewRef.current.injectJavaScript(newInjectedJavaScript);
@@ -345,6 +357,7 @@ const App = () => {
 
   const updateConfig = useCallback(
     async (appId: string) => {
+      console.log('Updating config to app:', appId);
       const appConfig = CONFIG[appId];
       activeConfigRef.current = appConfig;
       setConfig(appConfig);
@@ -363,9 +376,12 @@ const App = () => {
 
   const redirectToSafety = useCallback(
     (navState: { url: string }, prevUrl: string) => {
+      console.log('Checking if we need to redirect to safety...');
+      console.log('Current URL:', prevUrl);
       const cfg = activeConfigRef.current;
       if (!webViewRef.current) {return;}
       if (!loggedIn && loggingIn && cfg.signInUrl && (navState.url === cfg.sourceUrl || navState.url === cfg.baseUrl)) {
+        console.log('Redirecting to sign-in URL:', cfg.signInUrl);
         redirectToUrl(cfg.signInUrl);
         return;
       }
@@ -380,6 +396,7 @@ const App = () => {
         if (rule.withSelector) {
           selectorMatches.push({ rule });
         } else {
+          console.log('Redirecting to URL:', rule.toUrl);
           redirectToUrl(rule.toUrl);
           return;
         }
@@ -399,6 +416,7 @@ const App = () => {
           })();
           true;
         `;
+        console.log('Injecting JavaScript to check for redirect selector:', javaScript);
         webViewRef.current.injectJavaScript(javaScript);
       }
     },
@@ -406,8 +424,10 @@ const App = () => {
   );
 
   const saveLoggedInWebAppId = async (appId: string) => {
+    console.log('Saving logged in web app ID:', appId);
     try {
       await AsyncStorage.setItem('webAppId', appId);
+      console.log('Web app ID saved successfully');
     } catch (error) {
       console.error('Failed to save web app ID:', error);
     }
@@ -419,9 +439,13 @@ const App = () => {
         activeConfigRef.current.webAppId,
         ...Object.keys(CONFIG).filter((id) => id !== activeConfigRef.current.webAppId),
       ];
+      console.log('Checking login state for app IDs:', appIds);
       for (const id of appIds) {
         const appConfig = CONFIG[id];
+        console.log('Checking login state with cookies');
         const isLoggedIn = await hasAppSessionCookies(appConfig);
+        console.log('Logging in state:', loggingIn);
+        console.log('Logged in state:', isLoggedIn);
         if (isLoggedIn) {
           setLoggingIn(false);
           setLoggedIn(true);
@@ -436,15 +460,18 @@ const App = () => {
   };
 
   const loadInfoVisible = async () => {
+    console.log('Loading infoVisible state from AsyncStorage...');
     try {
       const value = await AsyncStorage.getItem('infoVisible');
       if (value !== null) {
+        console.log('infoVisible state loaded:', value);
         setInfoVisible(value === 'true');
         return;
       }
     } catch (error) {
       console.error('Failed to load infoVisible state:', error);
     }
+    console.log('No infoVisible state found, defaulting to true');
     setInfoVisible(true);
   };
 
@@ -458,6 +485,7 @@ const App = () => {
   };
 
   const trackNavState = (nativeEvent: { url: string; canGoBack?: boolean }) => {
+    console.log('Tracking navigation state:', nativeEvent);
     setCurrentUrl(nativeEvent.url);
     if (nativeEvent.canGoBack !== undefined) {
       setCanGoBack(nativeEvent.canGoBack);
@@ -475,14 +503,17 @@ const App = () => {
   };
 
   const handleMessage = (nativeEvent: { data: string }) => {
+    console.log('Received message from WebView:', nativeEvent.data);
     if (!webViewRef.current) {return;}
     try {
       const data = JSON.parse(nativeEvent.data) as { type?: string; toUrl?: string };
       if (data.type === 'redirect' && typeof data.toUrl === 'string') {
+        console.log('Redirecting due to selector detection');
         redirectToUrl(data.toUrl);
       }
     } catch {
       if (nativeEvent.data === 'redirect') {
+        console.log('Redirecting due to selector detection');
         redirectToUrl(activeConfigRef.current.sourceUrl);
       }
     }
@@ -525,13 +556,15 @@ const App = () => {
     }, 1000);
   };
 
-  const handleLoadSuccess = () => {
+  const handleLoadSuccess = (nativeEvent?: { url?: string }) => {
+    console.log('Handling load success:', nativeEvent);
     setHasLoadError(false);
   };
 
   const handleShouldStartLoadWithRequest = (request: { url: string }) => {
     const cfg = activeConfigRef.current;
     if (!request.url.includes(cfg.baseUrlShort) && !cfg.openableExternalUrls.some((url) => request.url.startsWith(url))) {
+      console.log('External link detected, opening in default browser:', request.url);
       Linking.openURL(request.url);
       return false;
     }
@@ -539,6 +572,7 @@ const App = () => {
   };
 
   const handleNavigationStateChange = (navState: { url: string }) => {
+    console.log('Handling navigation state change:', navState);
     if (!webViewRef.current) {return;}
     const prevUrl = currentUrl;
     checkForLoggedInAppSession();
@@ -548,6 +582,7 @@ const App = () => {
 
   const handleProcessTermination = () => {
     if (webViewRef.current) {
+      console.log('Reloading on process termination...');
       webViewRef.current.reload();
     }
   };
@@ -599,9 +634,11 @@ const App = () => {
 
   useEffect(() => {
     const bootstrap = async () => {
+      console.log('Determining web app ID...');
       try {
         const appId = await AsyncStorage.getItem('webAppId');
         if (appId && CONFIG[appId]) {
+          console.log('Web app ID found in AsyncStorage:', appId);
           await updateConfig(appId);
         }
       } catch (error) {
@@ -932,7 +969,8 @@ const App = () => {
               <Text style={styles.infoText}>
                 Welcome to OpenSocials, the open web app browser that puts you back in control of your social media
                 usage, keeping you connected without all the distractions and time-wasting scrolling.{'\n\n'}
-                Tap a social web app to log in. You can return to this home page at any time by logging out again.
+                Tap a social web app to log in. You can return to this home page by tapping the "Home" button
+                at the top of a web app's settings page.
               </Text>
               <Pressable
                 style={styles.infoCloseButton}
@@ -1001,8 +1039,8 @@ const App = () => {
         onError={() => {
           handleLoadError();
         }}
-        onLoad={() => {
-          handleLoadSuccess();
+        onLoad={(syntheticEvent) => {
+          handleLoadSuccess(syntheticEvent.nativeEvent);
         }}
         onLoadStart={(syntheticEvent) => {
           trackNavState(syntheticEvent.nativeEvent);
@@ -1068,6 +1106,7 @@ const styles = StyleSheet.create({
   },
   loginBackLabel: {
     fontSize: 17,
+    fontWeight: '700',
   },
   titleText: {
     color: 'white',
