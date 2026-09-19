@@ -969,8 +969,8 @@ const App = () => {
               <Text style={styles.infoText}>
                 Welcome to OpenSocials, the open web app browser that puts you back in control of your social media
                 usage, keeping you connected without all the distractions and time-wasting scrolling.{'\n\n'}
-                Tap a social web app to log in. You can return to this home page by tapping the "Home" button
-                at the top of a web app's settings page.
+                Tap a social web app to configure the features you want to unblock. Once you've logged in, you can
+                return to this home page by tapping 'Home' on the web app's settings page.
               </Text>
               <Pressable
                 style={styles.infoCloseButton}
