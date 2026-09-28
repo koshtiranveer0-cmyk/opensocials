@@ -51,6 +51,29 @@ function isValidRedirectsPayload(data: unknown): data is { [key: string]: Redire
   return true;
 }
 
+// Safety guardrail: extract the host of an https:// URL, or null for anything else.
+// React Native's URL polyfill throws on `.hostname`, so this is parsed by hand. Userinfo
+// (`user@host`) and backslashes are rejected outright, since browsers and naive parsers
+// disagree about where the host ends in those URLs.
+function getHttpsHost(url: string): string | null {
+  const m = /^https:\/\/([^/?#@\\\s]+)(?:[/?#]|$)/i.exec(url);
+  if (!m) {return null;}
+  return m[1].replace(/:\d+$/, '').toLowerCase();
+}
+
+// Safety guardrail: true only for https URLs on the active app's own domain (or a subdomain).
+function isOnAppDomain(url: string, app: AppConfigEntry): boolean {
+  const host = getHttpsHost(url);
+  if (!host) {return false;}
+  const domain = app.baseUrlShort.toLowerCase();
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
+// Safety guardrail: a remote redirects file may only point back into the app's own site.
+function redirectsStayOnAppDomain(data: { [key: string]: RedirectRule[] }, app: AppConfigEntry): boolean {
+  return Object.values(data).every((rules) => rules.every((r) => isOnAppDomain(r.toUrl, app)));
+}
+
 function cloneDefaultRedirects(app: AppConfigEntry): { [key: string]: RedirectRule[] } {
   return JSON.parse(JSON.stringify(app.defaultRedirects));
 }
@@ -62,6 +85,7 @@ async function fetchResolvedRedirects(app: AppConfigEntry): Promise<{ [key: stri
     if (!res.ok) {throw new Error('bad status');}
     const data = await res.json();
     if (!isValidRedirectsPayload(data)) {throw new Error('invalid shape');}
+    if (!redirectsStayOnAppDomain(data, app)) {throw new Error('redirect leaves app domain');}
     return data;
   } catch {
     return cloneDefaultRedirects(app);
@@ -277,6 +301,12 @@ const App = () => {
 
   const redirectToUrl = useCallback((url: string) => {
     if (!webViewRef.current) {return;}
+    // Safety guardrail: never navigate away from the active app's site, whatever asked for it
+    // (remote config, a page message, or a bug).
+    if (!isOnAppDomain(url, activeConfigRef.current)) {
+      console.warn('Blocked redirect outside the app domain:', url);
+      return;
+    }
     const safe = JSON.stringify(url);
     webViewRef.current.injectJavaScript(`window.location.href = ${safe};`);
   }, []);
@@ -497,7 +527,7 @@ const App = () => {
 
   const openLinkInWebView = (nativeEvent: { targetUrl: string }) => {
     if (!webViewRef.current) {return;}
-    if (nativeEvent.targetUrl.startsWith(activeConfigRef.current.baseUrl)) {
+    if (isOnAppDomain(nativeEvent.targetUrl, activeConfigRef.current)) {
       webViewRef.current.injectJavaScript(`window.location.href = ${JSON.stringify(nativeEvent.targetUrl)};`);
     }
   };
@@ -563,12 +593,18 @@ const App = () => {
 
   const handleShouldStartLoadWithRequest = (request: { url: string }) => {
     const cfg = activeConfigRef.current;
-    if (!request.url.includes(cfg.baseUrlShort) && !cfg.openableExternalUrls.some((url) => request.url.startsWith(url))) {
+    // Safety guardrail: match the real host, not "the URL contains instagram.com somewhere".
+    if (isOnAppDomain(request.url, cfg) || cfg.openableExternalUrls.some((url) => request.url.startsWith(url))) {
+      return true;
+    }
+    // Only hand ordinary web/mail/phone links to the system; drop intent:, file:, custom app schemes, etc.
+    if (/^(https?:|mailto:|tel:)/i.test(request.url)) {
       console.log('External link detected, opening in default browser:', request.url);
       Linking.openURL(request.url);
-      return false;
+    } else {
+      console.warn('Blocked navigation to non-web URL:', request.url);
     }
-    return true;
+    return false;
   };
 
   const handleNavigationStateChange = (navState: { url: string }) => {
@@ -1059,6 +1095,14 @@ const App = () => {
         allowsPictureInPictureMediaPlayback={true}
         allowsFullscreenVideo={true}
         contentMode={'mobile'}
+        // Safety guardrails: these match the library defaults today, pinned so a future
+        // dependency bump can't silently loosen them.
+        allowFileAccess={false}
+        allowFileAccessFromFileURLs={false}
+        allowUniversalAccessFromFileURLs={false}
+        mixedContentMode={'never'}
+        geolocationEnabled={false}
+        webviewDebuggingEnabled={false}
       />
       {hasLoadError && (
         <View style={styles.errorOverlay}>

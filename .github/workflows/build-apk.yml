@@ -1,0 +1,72 @@
+name: Build signed APK
+
+# Builds OpenSocials Safe in GitHub's cloud, so no Android toolchain is needed locally.
+# Needs two repository secrets: KEYSTORE_BASE64 (the release .p12, base64) and KEYSTORE_PASSWORD.
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+# Safety guardrail: the build token can read the repo and nothing else.
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # npm ci installs exactly what package-lock.json pins, nothing newer.
+      - run: npm ci
+
+      - name: Write signing key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ] || [ -z "$KEYSTORE_PASSWORD" ]; then
+            echo "::error::Add the KEYSTORE_BASE64 and KEYSTORE_PASSWORD repository secrets first."
+            exit 1
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > android/app/release.p12
+          {
+            echo "RELEASE_STORE_FILE=release.p12"
+            echo "RELEASE_STORE_PASSWORD=$KEYSTORE_PASSWORD"
+            echo "RELEASE_KEY_ALIAS=opensocials-safe"
+            echo "RELEASE_KEY_PASSWORD=$KEYSTORE_PASSWORD"
+          } > android/key.properties
+
+      - name: Build release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease --no-daemon
+
+      - name: Checksum
+        run: |
+          cp android/app/build/outputs/apk/release/app-release.apk OpenSocials-Safe.apk
+          sha256sum OpenSocials-Safe.apk | tee OpenSocials-Safe.apk.sha256
+
+      - name: Remove signing key from the runner
+        if: always()
+        run: rm -f android/app/release.p12 android/key.properties
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: OpenSocials-Safe
+          path: |
+            OpenSocials-Safe.apk
+            OpenSocials-Safe.apk.sha256
+          retention-days: 30

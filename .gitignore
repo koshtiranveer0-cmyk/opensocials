@@ -130,3 +130,7 @@ fastlane/test_output/
 google-services.json
 
 # Git ignore list complete
+
+# Release signing key (never commit)
+*.p12
+android/app/release.p12

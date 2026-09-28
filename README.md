@@ -1,3 +1,20 @@
+# OpenSocials Safe
+
+A hardened fork of [liamperritt/opensocials](https://github.com/liamperritt/opensocials) (v0.3.6). Same app, with these safety guardrails:
+
+- **Never leaves the app's own site.** Every redirect, whether from the remote config, a page message or the app itself, must be an `https://` URL on the active app's domain (e.g. `instagram.com`), or it is ignored.
+- **Remote config can't point elsewhere.** A downloaded `redirects.json` whose targets leave the domain is rejected and the built-in rules are used instead.
+- **Real host matching.** The "is this still Instagram?" check compares the actual host instead of asking whether the URL *contains* `instagram.com` (which `instagram.com.evil.com` would pass). Userinfo and backslash tricks are rejected.
+- **No odd link schemes.** Off-site `http(s)`, `mailto:` and `tel:` links open in the normal browser/app; `intent:`, `file:` and custom app schemes are dropped.
+- **Two fewer permissions.** `RECEIVE_BOOT_COMPLETED` and `WAKE_LOCK` are removed; the app never runs in the background.
+- **Locked-down WebView.** No file access, no mixed content, no geolocation, no remote debugging (pinned explicitly).
+- **Quieter logs.** Release builds don't write page URLs to the phone's system log.
+- **Separate app ID** (`com.opensocials.safe`), so it installs alongside, not over, the original.
+
+Built by `.github/workflows/build-apk.yml` in GitHub Actions and signed with the fork owner's own key.
+
+---
+
 # OpenSocials
 
 **OpenSocials** is an open web app browser for Android and iOS that aims to put users back in control of their social media usage, helping people stay connected without all the distractions and time-wasting scrolling. Use OpenSocials to access the useful features your social media apps (including Instagram, Facebook and YouTube) while blocking any distracting or addictive features (such as the Feed, Reels or Shorts). Configure which features you want to block and which features you want to remain accessible.

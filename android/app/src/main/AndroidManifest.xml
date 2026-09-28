@@ -2,8 +2,10 @@
   xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- Safety guardrail: the app never runs in the background, so it has no reason to start at boot
+         or hold the phone awake. tools:node="remove" also strips these if a library tries to add them. -->
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" tools:node="remove" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
