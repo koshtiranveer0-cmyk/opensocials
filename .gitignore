@@ -45,8 +45,6 @@ ios/Pods/
 ios/build/
 
 # Metro, Babel, and cache files
-babel.config.js
-metro.config.js
 jest/
 coverage/
 .nyc_output/
